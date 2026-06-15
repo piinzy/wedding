@@ -83,17 +83,19 @@ export default function DashboardPage() {
 
         {/* ── Hero Countdown Banner ── */}
         <div className="relative overflow-hidden rounded-sm bg-brand-charcoal text-white px-8 py-7">
-          {/* decorative circles */}
           <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-brand-gold/10" />
           <div className="absolute -bottom-12 -left-4 w-36 h-36 rounded-full bg-brand-gold/8" />
           <div className="absolute top-4 left-4 text-brand-gold/20 text-8xl select-none">✦</div>
 
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <p className="text-white/60 text-xs font-medium tracking-widest uppercase mb-2">يوم زفافك</p>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">💍</span>
+                <span className="text-white/60 text-xs font-medium tracking-widest uppercase">حفل زواج</span>
+              </div>
               <h2 className="text-2xl font-bold mb-1">أهلاً، مريم ✨</h2>
               <p className="text-white/70 text-sm">
-                تبقّى على يوم زفافك الجمعة، ٢٥ ديسمبر ٢٠٢٥
+                تبقّى على موعد مناسبتك الجمعة، ٢٥ ديسمبر ٢٠٢٥
               </p>
             </div>
 

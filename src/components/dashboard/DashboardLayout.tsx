@@ -107,9 +107,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Wedding info pill */}
+        {/* Event info pill */}
         <div className="mx-4 mt-5 mb-6 rounded-sm bg-white/5 border border-white/10 px-4 py-3">
-          <p className="text-white/50 text-xs mb-1">حفل زفافي</p>
+          <p className="text-white/50 text-xs mb-1">💍 حفل زواج</p>
           <p className="text-white font-semibold text-sm">٢٥ ديسمبر ٢٠٢٥</p>
           <div className="mt-2 h-1 rounded-full bg-white/10 overflow-hidden">
             <div className="h-full bg-gold-gradient rounded-full" style={{ width: '42%' }} />
@@ -152,7 +152,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="w-8 h-8 rounded-full bg-brand-gold flex items-center justify-center text-white text-sm font-bold">م</div>
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">مريم العتيبي</p>
-              <p className="text-white/40 text-xs truncate">عروس</p>
+              <p className="text-white/40 text-xs truncate">منشئ فعالية</p>
             </div>
           </div>
           <button

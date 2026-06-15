@@ -5,9 +5,16 @@
 // ============================================
 
 export enum UserRole {
-  Bride = 'bride',
-  Vendor = 'vendor',
-  Admin = 'admin',
+  Organizer = 'organizer',
+  Vendor    = 'vendor',
+  Admin     = 'admin',
+}
+
+export enum EventType {
+  Wedding    = 'wedding',
+  HomeParty  = 'home_party',
+  Occasion   = 'occasion',
+  Birthday   = 'birthday',
 }
 
 export enum VendorServiceType {
@@ -25,10 +32,10 @@ export enum SubscriptionPlan {
   Premium = 'premium',
 }
 
-export enum BrideServiceType {
-  AiPlanner = 'ai_planner',
+export enum OrganizerServiceType {
+  AiPlanner       = 'ai_planner',
   VendorDirectory = 'vendor_directory',
-  PdfExport = 'pdf_export',
+  PdfExport       = 'pdf_export',
 }
 
 export enum InquiryStatus {
