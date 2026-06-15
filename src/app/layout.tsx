@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Tajawal } from 'next/font/google';
 import './globals.css';
 import { SupabaseSessionProvider } from '@/components/providers/SupabaseSessionProvider';
+import { BottomNav } from '@/components/layout/BottomNav';
 
 const tajawal = Tajawal({
   weight: ['200', '300', '400', '500', '700', '800', '900'],
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className={`${tajawal.variable} font-sans antialiased`}>
         <SupabaseSessionProvider>
           {children}
+          <BottomNav />
         </SupabaseSessionProvider>
       </body>
     </html>

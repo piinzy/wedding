@@ -54,14 +54,13 @@ export async function middleware(request: NextRequest) {
     
     // Check for admin-only routes
     if (pathname.startsWith('/admin')) {
-      const { data: { user: userData } } = await supabase.auth.getUser();
-      if (userData && 'role' in userData) {
-        // You may need to fetch the user's role from your database
-        // This is a simplified check
-        const userRole = (userData as any).role;
-        if (userRole !== 'admin') {
-          return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (!userRecord || userRecord.role !== 'admin') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     }
   }

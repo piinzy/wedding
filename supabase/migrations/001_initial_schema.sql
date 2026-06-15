@@ -314,5 +314,66 @@ ALTER TABLE budget_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vendor_inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- Note: Specific RLS policies should be added based on your auth requirements
--- These are placeholders that should be customized for your security needs
+-- ============================================
+-- RLS POLICIES
+-- ============================================
+
+-- users
+CREATE POLICY "users_read_own" ON users FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "users_update_own" ON users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "admin_all_users" ON users FOR ALL USING (
+  EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- bride_profiles
+CREATE POLICY "bride_read_own" ON bride_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "bride_insert_own" ON bride_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "bride_update_own" ON bride_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "bride_delete_own" ON bride_profiles FOR DELETE USING (auth.uid() = user_id);
+
+-- vendor_profiles (public read, own write)
+CREATE POLICY "vendor_profiles_public_read" ON vendor_profiles FOR SELECT USING (is_approved = true OR auth.uid() = user_id);
+CREATE POLICY "vendor_insert_own" ON vendor_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "vendor_update_own" ON vendor_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "vendor_delete_own" ON vendor_profiles FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "admin_all_vendors" ON vendor_profiles FOR ALL USING (
+  EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
+);
+
+-- vendor_photos (public read, vendor write)
+CREATE POLICY "vendor_photos_public_read" ON vendor_photos FOR SELECT USING (true);
+CREATE POLICY "vendor_photos_write_own" ON vendor_photos FOR ALL USING (
+  EXISTS (SELECT 1 FROM vendor_profiles WHERE id = vendor_id AND user_id = auth.uid())
+);
+
+-- bride_purchases
+CREATE POLICY "bride_purchases_own" ON bride_purchases FOR ALL USING (auth.uid() = bride_id);
+
+-- vendor_subscriptions
+CREATE POLICY "vendor_subscriptions_own" ON vendor_subscriptions FOR ALL USING (
+  EXISTS (SELECT 1 FROM vendor_profiles WHERE id = vendor_id AND user_id = auth.uid())
+);
+
+-- ai_conversations
+CREATE POLICY "ai_conversations_own" ON ai_conversations FOR ALL USING (auth.uid() = bride_id);
+
+-- tasks
+CREATE POLICY "tasks_own" ON tasks FOR ALL USING (auth.uid() = bride_id);
+
+-- budget_items
+CREATE POLICY "budget_items_own" ON budget_items FOR ALL USING (auth.uid() = bride_id);
+
+-- vendor_inquiries
+CREATE POLICY "inquiries_bride" ON vendor_inquiries FOR ALL USING (auth.uid() = bride_id);
+CREATE POLICY "inquiries_vendor" ON vendor_inquiries FOR SELECT USING (
+  EXISTS (SELECT 1 FROM vendor_profiles WHERE id = vendor_id AND user_id = auth.uid())
+);
+CREATE POLICY "inquiries_vendor_update" ON vendor_inquiries FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM vendor_profiles WHERE id = vendor_id AND user_id = auth.uid())
+);
+
+-- reviews
+CREATE POLICY "reviews_public_read" ON reviews FOR SELECT USING (is_verified = true OR auth.uid() = bride_id);
+CREATE POLICY "reviews_bride_write" ON reviews FOR INSERT WITH CHECK (auth.uid() = bride_id);
+CREATE POLICY "reviews_bride_update" ON reviews FOR UPDATE USING (auth.uid() = bride_id);
+CREATE POLICY "reviews_bride_delete" ON reviews FOR DELETE USING (auth.uid() = bride_id);
