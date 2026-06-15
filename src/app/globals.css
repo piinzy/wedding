@@ -3,15 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #FAFAF8;
+  --foreground: #1B1B1B;
+  --gold: #C9A96E;
+  --gold-light: #E8D5B0;
+  --blush: #F2D7D5;
+  --charcoal: #1B1B1B;
+  --cream: #FAFAF8;
 }
 
 body {
@@ -25,32 +23,53 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-/* RTL-specific utilities */
+/* RTL */
 [dir="rtl"] {
   text-align: right;
 }
 
-/* Custom scrollbar for Arabic content */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f0ede8; }
+::-webkit-scrollbar-thumb { background: #c9a96e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a67c45; }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+
+  .gold-divider {
+    @apply flex items-center gap-3;
+  }
+  .gold-divider::before,
+  .gold-divider::after {
+    content: "";
+    @apply flex-1 h-px bg-brand-gold-light;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply w-full bg-brand-charcoal text-white font-semibold py-3.5 px-6 rounded-sm
+           transition-all duration-200 hover:bg-brand-charcoal-light
+           focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2
+           tracking-wide text-sm;
+  }
+
+  .btn-gold {
+    @apply w-full bg-gold-gradient text-white font-semibold py-3.5 px-6 rounded-sm
+           transition-all duration-200 hover:opacity-90 shadow-brand
+           focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2
+           tracking-wide text-sm;
+  }
+
+  .input-field {
+    @apply w-full border border-gray-200 bg-white rounded-sm px-4 py-3.5 text-sm
+           text-brand-charcoal placeholder-gray-400
+           focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold
+           transition-colors duration-150 shadow-input;
+  }
+
+  .input-label {
+    @apply block text-xs font-semibold text-brand-charcoal-light mb-1.5 tracking-wider uppercase;
   }
 }

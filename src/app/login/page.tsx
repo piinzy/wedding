@@ -1,9 +1,270 @@
-// /app/login/page.tsx - Login page placeholder
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [showPass, setShowPass] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      setLoading(false);
+      return;
+    }
+
+    router.push('/dashboard');
+    router.refresh();
+  }
+
+  async function handleGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${location.origin}/dashboard` },
+    });
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1>تسجيل الدخول</h1>
+    <div className="min-h-screen flex flex-row-reverse">
+
+      {/* ── Right: Hero Image ── */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 z-10 bg-hero-overlay" />
+
+        {/* Background image via CSS — replace with real image later */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80')`,
+          }}
+        />
+
+        {/* Hero text */}
+        <div className="relative z-20 flex flex-col justify-end p-14 text-white">
+          <div className="mb-8">
+            <div className="w-12 h-px bg-brand-gold mb-6" />
+            <h2 className="text-4xl font-bold leading-snug mb-3">
+              يومك المثالي<br />يبدأ من هنا
+            </h2>
+            <p className="text-white/75 text-base leading-relaxed max-w-xs">
+              خطط لزفافك الأسطوري مع أفضل موردي المملكة العربية السعودية
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div className="flex gap-8 border-t border-white/20 pt-8">
+            {[
+              { n: '+٥٠٠', label: 'مورد معتمد' },
+              { n: '+٣٠٠٠', label: 'زفاف ناجح' },
+              { n: '٥ ★', label: 'تقييم الخدمة' },
+            ].map((s) => (
+              <div key={s.label}>
+                <p className="text-2xl font-bold text-brand-gold">{s.n}</p>
+                <p className="text-white/60 text-xs mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Left: Form ── */}
+      <div className="w-full lg:w-1/2 flex flex-col min-h-screen bg-brand-cream">
+
+        {/* Top nav */}
+        <header className="flex items-center justify-between px-8 py-6">
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-brand-charcoal text-lg font-bold tracking-tight group-hover:text-brand-gold transition-colors">
+              رباط
+            </span>
+            <span className="text-brand-gold text-xl">✦</span>
+          </Link>
+          <p className="text-sm text-brand-charcoal-light">
+            ليس لديك حساب؟{' '}
+            <Link href="/register" className="text-brand-gold hover:underline font-semibold">
+              سجّل مجاناً
+            </Link>
+          </p>
+        </header>
+
+        {/* Form container */}
+        <div className="flex-1 flex items-center justify-center px-8 py-12">
+          <div className="w-full max-w-md animate-fade-up">
+
+            {/* Heading */}
+            <div className="mb-10 text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-brand-blush mb-5">
+                <span className="text-2xl">💍</span>
+              </div>
+              <h1 className="text-3xl font-bold text-brand-charcoal mb-2">
+                أهلاً بعودتك
+              </h1>
+              <p className="text-brand-charcoal-light text-sm">
+                سجّل دخولك لمتابعة تخطيط زفافك
+              </p>
+            </div>
+
+            {/* Google Sign In */}
+            <button
+              type="button"
+              onClick={handleGoogle}
+              className="w-full flex items-center justify-center gap-3 border border-gray-200 bg-white rounded-sm py-3.5 text-sm font-medium text-brand-charcoal hover:bg-gray-50 transition-colors shadow-input mb-6"
+            >
+              <GoogleIcon />
+              المتابعة مع Google
+            </button>
+
+            {/* Divider */}
+            <div className="gold-divider mb-6">
+              <span className="text-xs text-gray-400 font-medium">أو بالبريد الإلكتروني</span>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="mb-5 flex items-center gap-2 bg-red-50 border border-red-200 rounded-sm px-4 py-3">
+                <span className="text-red-500 text-base">⚠</span>
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="input-label">البريد الإلكتروني</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="example@email.com"
+                  required
+                  autoComplete="email"
+                  className="input-field"
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="input-label mb-0">كلمة المرور</label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-brand-gold hover:underline"
+                  >
+                    نسيت كلمة المرور؟
+                  </Link>
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    autoComplete="current-password"
+                    className="input-field pl-12"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-charcoal transition-colors"
+                    aria-label="إظهار/إخفاء كلمة المرور"
+                  >
+                    {showPass ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary mt-2"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoadingSpinner />
+                    جاري تسجيل الدخول...
+                  </span>
+                ) : (
+                  'تسجيل الدخول'
+                )}
+              </button>
+            </form>
+
+            {/* Footer note */}
+            <p className="text-center text-xs text-gray-400 mt-8 leading-relaxed">
+              بتسجيل دخولك، أنت توافق على{' '}
+              <Link href="/terms" className="underline hover:text-brand-gold">شروط الخدمة</Link>
+              {' '}و{' '}
+              <Link href="/privacy" className="underline hover:text-brand-gold">سياسة الخصوصية</Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom brand note */}
+        <footer className="px-8 py-5 text-center border-t border-gray-100">
+          <p className="text-xs text-gray-400">
+            © {new Date().getFullYear()} رباط — منصة الزفاف العربية
+          </p>
+        </footer>
+      </div>
     </div>
+  );
+}
+
+/* ── Icons ── */
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+    </svg>
   );
 }
