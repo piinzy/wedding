@@ -63,7 +63,7 @@ export default function LoginPage() {
               يومك المثالي<br />يبدأ من هنا
             </h2>
             <p className="text-white/75 text-base leading-relaxed max-w-xs">
-              خطط لزفافك الأسطوري مع أفضل موردي المملكة العربية السعودية
+              خطط لمناسبتك المثالية مع أفضل موردي الخدمات في المملكة
             </p>
           </div>
 
@@ -109,13 +109,13 @@ export default function LoginPage() {
             {/* Heading */}
             <div className="mb-10 text-center">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-brand-blush mb-5">
-                <span className="text-2xl">💍</span>
+                <span className="text-2xl">✦</span>
               </div>
               <h1 className="text-3xl font-bold text-brand-charcoal mb-2">
                 أهلاً بعودتك
               </h1>
               <p className="text-brand-charcoal-light text-sm">
-                سجّل دخولك لمتابعة تخطيط زفافك
+                سجّل دخولك لمتابعة تخطيط مناسبتك
               </p>
             </div>
 

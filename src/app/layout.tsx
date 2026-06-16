@@ -1,10 +1,8 @@
-// /app/layout.tsx - Root layout with RTL support, Tajawal font, and Supabase session provider
-
 import type { Metadata } from 'next';
 import { Tajawal } from 'next/font/google';
 import './globals.css';
 import { SupabaseSessionProvider } from '@/components/providers/SupabaseSessionProvider';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { BottomNav, BottomNavConditional } from '@/components/layout/BottomNav';
 
 const tajawal = Tajawal({
   weight: ['200', '300', '400', '500', '700', '800', '900'],
@@ -13,31 +11,33 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'Wedding AI Planner - مخطط الزفاف الذكي',
-  description: 'منصة عربية شاملة لتخطيط الزفاف بمساعدة الذكاء الاصطناعي - Arabic wedding planning platform powered by AI',
-  keywords: ['wedding', 'planning', 'Arabic', 'زفاف', 'تخطيط', 'AI', 'الذكاء الاصطناعي'],
-  authors: [{ name: 'Wedding AI Planner' }],
+  title: { default: 'رباط — منصة المناسبات العربية', template: '%s | رباط' },
+  description: 'خطط لمناسبتك المثالية مع أفضل موردي الخدمات في المملكة — زفاف، مناسبات، أعياد ميلاد وأكثر',
+  keywords: ['مناسبات', 'زفاف', 'تخطيط', 'موردون', 'السعودية', 'رباط'],
   openGraph: {
-    title: 'Wedding AI Planner - مخطط الزفاف الذكي',
-    description: 'منصة عربية شاملة لتخطيط الزفاف بمساعدة الذكاء الاصطناعي',
+    title: 'رباط — منصة المناسبات العربية',
+    description: 'خطط لمناسبتك المثالية مع أفضل موردي الخدمات في المملكة',
     locale: 'ar_AR',
     type: 'website',
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Pages that should NOT show the mobile bottom nav
+const NO_NAV_PATHS = ['/login', '/register', '/admin', '/forgot-password'];
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ar" dir="rtl">
       <body className={`${tajawal.variable} font-sans antialiased`}>
         <SupabaseSessionProvider>
           {children}
-          <BottomNav />
+          <BottomNavWrapper />
         </SupabaseSessionProvider>
       </body>
     </html>
   );
+}
+
+function BottomNavWrapper() {
+  return <BottomNavConditional exclude={['/login', '/register', '/admin', '/forgot-password']} />;
 }

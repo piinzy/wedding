@@ -205,7 +205,7 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-3 mr-auto lg:mr-0">
             {/* Quick link to public profile */}
-            <Link href="/vendors/qasr-alnour" className="hidden sm:flex items-center gap-1.5 text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-sm hover:bg-brand-gold/5 transition-colors">
+            <Link href="/vendor/profile" className="hidden sm:flex items-center gap-1.5 text-xs text-brand-gold border border-brand-gold/30 px-3 py-1.5 rounded-sm hover:bg-brand-gold/5 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
               </svg>

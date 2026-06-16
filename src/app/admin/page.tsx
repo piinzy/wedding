@@ -133,7 +133,7 @@ export default function AdminPage() {
             </button>
             <div>
               <h1 className="font-bold text-brand-charcoal text-base">لوحة الإدارة</h1>
-              <p className="text-gray-400 text-xs">الإثنين، ١٦ يونيو ٢٠٢٦</p>
+              <p className="text-gray-400 text-xs">{new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
           </div>
 
