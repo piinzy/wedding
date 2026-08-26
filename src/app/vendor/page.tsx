@@ -1,311 +1,200 @@
-'use client';
-
 import { VendorLayout } from '@/components/dashboard/VendorLayout';
+import { getVendorDashboardData } from '@/lib/actions/vendor';
 import Link from 'next/link';
 
-/* ── Mock data ── */
-const STATS = [
-  { icon: '👁️', label: 'مشاهدات هذا الشهر', value: '١٬٢٤٣',   delta: '+١٨٪',   up: true,  accent: 'bg-blue-50' },
-  { icon: '💬', label: 'استفسارات جديدة',     value: '٣',        delta: '+٢',      up: true,  accent: 'bg-yellow-50' },
-  { icon: '⭐', label: 'متوسط التقييم',       value: '٤.٩',      delta: '+٠.١',    up: true,  accent: 'bg-brand-blush' },
-  { icon: '💰', label: 'إيرادات مقدّرة',      value: '٤٨٬٠٠٠ ر.س', delta: 'هذا الشهر', up: true, accent: 'bg-green-50' },
-];
-
-const INQUIRIES = [
-  {
-    id: 1,
-    name: 'مريم العتيبي',
-    avatar: 'م',
-    date: 'الزفاف: ٢٥ ديسمبر ٢٠٢٥',
-    msg: 'أودّ الاستفسار عن توفر القاعة في هذا التاريخ والأسعار المتاحة...',
-    time: 'منذ ٢٠ دقيقة',
-    status: 'جديد',
-  },
-  {
-    id: 2,
-    name: 'سارة المطيري',
-    avatar: 'س',
-    date: 'الزفاف: ١٠ يناير ٢٠٢٦',
-    msg: 'هل تتوفر باقة شاملة للديكور والضيافة معاً؟',
-    time: 'منذ ساعتين',
-    status: 'جديد',
-  },
-  {
-    id: 3,
-    name: 'نورة الدوسري',
-    avatar: 'ن',
-    date: 'الزفاف: ٥ مارس ٢٠٢٦',
-    msg: 'شكراً على الرد السريع، هل يمكن تحديد موعد زيارة للقاعة؟',
-    time: 'أمس',
-    status: 'قيد الرد',
-  },
-];
-
-const REVIEWS = [
-  { id: 1, name: 'منى الشمري',   rating: 5, comment: 'قاعة رائعة وخدمة ممتازة، الطاقم محترف جداً وكل شيء كان مثالياً.', date: 'منذ أسبوع' },
-  { id: 2, name: 'لجين العمري', rating: 5, comment: 'تجربة لا تُنسى، القاعة فاخرة والديكور خيالي. أنصح به بشدة.', date: 'منذ أسبوعين' },
-  { id: 3, name: 'هند القحطاني', rating: 4, comment: 'ممتاز بشكل عام، فقط الموقف كان يحتاج لتنظيم أفضل.', date: 'منذ شهر' },
-];
-
-const CHART_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
-const CHART_VIEWS  = [320, 480, 390, 650, 820, 1243];
-const MAX_VAL      = Math.max(...CHART_VIEWS);
-
-const PORTFOLIO = [
-  { id: 1, label: 'القاعة الرئيسية', emoji: '🏛️', cover: true },
-  { id: 2, label: 'حديقة الاستقبال', emoji: '🌿', cover: false },
-  { id: 3, label: 'الديكور الداخلي', emoji: '✨', cover: false },
-  { id: 4, label: 'إضاءة مسرح',      emoji: '💡', cover: false },
-];
-
-/* ── Helpers ── */
-function StatCard({ icon, label, value, delta, up, accent }: {
-  icon: string; label: string; value: string; delta: string; up: boolean; accent: string;
-}) {
-  return (
-    <div className="bg-white rounded-sm p-5 shadow-card border border-gray-100">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-10 h-10 rounded-sm flex items-center justify-center text-xl ${accent}`}>{icon}</div>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${up ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
-          {delta}
-        </span>
-      </div>
-      <p className="text-2xl font-bold text-brand-charcoal">{value}</p>
-      <p className="text-xs text-gray-400 mt-1">{label}</p>
-    </div>
-  );
+function formatSAR(n: number) {
+  return n.toLocaleString('ar-SA') + ' ر.س';
 }
 
-function SectionHeader({ title, action, href }: { title: string; action?: string; href?: string }) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-base font-bold text-brand-charcoal">{title}</h2>
-      {action && href && (
-        <Link href={href} className="text-xs text-brand-gold hover:underline font-medium">{action} ←</Link>
-      )}
-    </div>
-  );
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 1) return 'منذ أقل من ساعة';
+  if (hours < 24) return `منذ ${hours} ساعة`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'أمس';
+  return `منذ ${days} أيام`;
 }
 
-/* ══════════════════════════════════════════════ */
-export default function VendorDashboardPage() {
+const INQUIRY_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending:  { label: 'جديد',     color: 'bg-yellow-100 text-yellow-700' },
+  read:     { label: 'مقروء',   color: 'bg-blue-100 text-blue-700'     },
+  replied:  { label: 'تم الرد', color: 'bg-green-100 text-green-700'   },
+};
+
+export default async function VendorPage() {
+  const { profile, inquiries, reviews, photos } = await getVendorDashboardData();
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : '—';
+
+  const pendingInquiries = inquiries.filter(i => i.status === 'pending').length;
+
+  // Setup required: redirect if no vendor profile
+  if (!profile) {
+    return (
+      <VendorLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
+          <p className="text-4xl">🏢</p>
+          <h2 className="text-xl font-bold text-brand-charcoal">لم يتم إنشاء ملف المورد بعد</h2>
+          <p className="text-sm text-gray-500 max-w-xs">أنشئ ملفك التجاري لتظهر في دليل الموردين وتستقبل الاستفسارات</p>
+          <Link href="/vendor/setup" className="btn-primary mt-2 w-auto px-8">إنشاء ملف المورد</Link>
+        </div>
+      </VendorLayout>
+    );
+  }
+
   return (
     <VendorLayout>
       <div className="space-y-6 max-w-6xl mx-auto animate-fade-up">
 
-        {/* ── Welcome Banner ── */}
-        <div className="relative overflow-hidden rounded-sm bg-brand-charcoal text-white px-8 py-6">
-          <div className="absolute -top-8 -left-8 w-44 h-44 rounded-full bg-brand-gold/10" />
-          <div className="absolute -bottom-10 left-20 w-32 h-32 rounded-full bg-white/5" />
-          <div className="absolute top-3 left-3 text-brand-gold/20 text-7xl select-none">✦</div>
-
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden rounded-sm bg-brand-charcoal text-white px-8 py-7">
+          <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-brand-gold/10" />
+          <div className="absolute top-4 left-4 text-brand-gold/20 text-8xl select-none">✦</div>
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-white/50 text-xs tracking-widest uppercase mb-2">لوحة المورد</p>
-              <h2 className="text-xl font-bold mb-1">أهلاً، أحمد 👋</h2>
-              <p className="text-white/60 text-sm">لديك <span className="text-brand-gold font-bold">٣ استفسارات</span> جديدة تنتظر ردك</p>
-            </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <Link href="/vendor/inquiries" className="bg-brand-gold text-white text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-brand-gold-dark transition-colors">
-                عرض الاستفسارات
-              </Link>
-              <Link href="/vendor/profile" className="border border-white/20 text-white/80 text-sm px-4 py-2.5 rounded-sm hover:bg-white/10 transition-colors">
-                تعديل الملف
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Stats Grid ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {STATS.map(s => <StatCard key={s.label} {...s} />)}
-        </div>
-
-        {/* ── Middle: Chart + Inquiries ── */}
-        <div className="grid lg:grid-cols-5 gap-5">
-
-          {/* Views Chart — 3 cols */}
-          <div className="lg:col-span-3 bg-white rounded-sm p-6 shadow-card border border-gray-100">
-            <SectionHeader title="المشاهدات — آخر ٦ أشهر" action="تقرير كامل" href="/vendor/analytics" />
-
-            {/* Bar chart */}
-            <div className="flex items-end gap-2 h-40 mb-3">
-              {CHART_MONTHS.map((m, i) => {
-                const h = Math.round((CHART_VIEWS[i] / MAX_VAL) * 100);
-                const isLast = i === CHART_MONTHS.length - 1;
-                return (
-                  <div key={m} className="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer">
-                    <div className="relative w-full flex items-end justify-center" style={{ height: '148px' }}>
-                      {/* Tooltip */}
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-brand-charcoal text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        {CHART_VIEWS[i].toLocaleString('ar-SA')}
-                      </div>
-                      <div
-                        className={`w-full rounded-t-sm transition-all duration-500 ${isLast ? 'bg-brand-gold' : 'bg-gray-200 group-hover:bg-brand-gold-light'}`}
-                        style={{ height: `${h}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400">{m}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Summary row */}
-            <div className="flex items-center gap-6 pt-4 border-t border-gray-100">
-              <div>
-                <p className="text-xs text-gray-400">إجمالي المشاهدات</p>
-                <p className="font-bold text-brand-charcoal">٣٬٩٠٣</p>
+              <div className="flex items-center gap-2 mb-1">
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${profile.is_approved ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
+                  {profile.is_approved ? '✓ معتمد ومنشور' : '⏳ قيد المراجعة'}
+                </span>
               </div>
-              <div>
-                <p className="text-xs text-gray-400">معدل التحويل</p>
-                <p className="font-bold text-green-600">٢.٤٪</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">أعلى شهر</p>
-                <p className="font-bold text-brand-charcoal">يونيو</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Inquiries — 2 cols */}
-          <div className="lg:col-span-2 bg-white rounded-sm p-6 shadow-card border border-gray-100">
-            <SectionHeader title="أحدث الاستفسارات" action="الكل" href="/vendor/inquiries" />
-            <div className="space-y-3">
-              {INQUIRIES.map(inq => (
-                <div key={inq.id} className="flex gap-3 p-3 rounded-sm border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
-                  <div className="w-9 h-9 rounded-full bg-brand-blush flex items-center justify-center text-brand-rose font-bold text-sm flex-shrink-0">
-                    {inq.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-1 mb-0.5">
-                      <p className="font-semibold text-brand-charcoal text-sm truncate">{inq.name}</p>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                        inq.status === 'جديد' ? 'bg-brand-gold/15 text-brand-gold-dark' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {inq.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-brand-gold mb-1">{inq.date}</p>
-                    <p className="text-xs text-gray-400 truncate">{inq.msg}</p>
-                    <p className="text-xs text-gray-300 mt-1">{inq.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link href="/vendor/inquiries" className="mt-4 block text-center text-sm text-brand-gold hover:underline font-medium py-2">
-              عرض جميع الاستفسارات ←
-            </Link>
-          </div>
-        </div>
-
-        {/* ── Bottom: Portfolio + Reviews ── */}
-        <div className="grid lg:grid-cols-2 gap-5">
-
-          {/* Portfolio */}
-          <div className="bg-white rounded-sm p-6 shadow-card border border-gray-100">
-            <SectionHeader title="معرض الأعمال" action="إدارة الصور" href="/vendor/portfolio" />
-            <div className="grid grid-cols-2 gap-3">
-              {PORTFOLIO.map(p => (
-                <div key={p.id} className={`relative group rounded-sm overflow-hidden border-2 transition-all cursor-pointer ${
-                  p.cover ? 'border-brand-gold' : 'border-gray-100 hover:border-brand-gold-light'
-                }`}>
-                  <div className="bg-brand-cream h-28 flex items-center justify-center">
-                    <span className="text-5xl opacity-60 group-hover:scale-110 transition-transform duration-200">{p.emoji}</span>
-                  </div>
-                  <div className="px-3 py-2 border-t border-gray-100">
-                    <p className="text-xs font-medium text-brand-charcoal truncate">{p.label}</p>
-                    {p.cover && <span className="text-[10px] text-brand-gold font-bold">صورة الغلاف</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="mt-3 w-full border-2 border-dashed border-gray-200 text-gray-400 hover:border-brand-gold hover:text-brand-gold text-sm py-2.5 rounded-sm transition-colors">
-              + رفع صور جديدة
-            </button>
-          </div>
-
-          {/* Reviews */}
-          <div className="bg-white rounded-sm p-6 shadow-card border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-brand-charcoal">التقييمات</h2>
-              <div className="flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-sm px-3 py-1.5">
-                <span className="text-brand-gold text-sm font-bold">★</span>
-                <span className="text-brand-gold-dark font-bold text-sm">٤.٩</span>
-                <span className="text-gray-400 text-xs">/ ٥</span>
-              </div>
-            </div>
-
-            {/* Rating bars */}
-            <div className="space-y-2 mb-5 pb-5 border-b border-gray-100">
-              {[5, 4, 3, 2, 1].map(star => {
-                const pct = star === 5 ? 80 : star === 4 ? 15 : star === 3 ? 5 : 0;
-                return (
-                  <div key={star} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 w-3">{star}</span>
-                    <span className="text-brand-gold text-xs">★</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-brand-gold rounded-full" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-xs text-gray-400 w-8">{pct}٪</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Reviews list */}
-            <div className="space-y-4 max-h-52 overflow-y-auto">
-              {REVIEWS.map(r => (
-                <div key={r.id} className="pb-4 border-b border-gray-50 last:border-0 last:pb-0">
-                  <div className="flex items-start justify-between mb-1.5">
-                    <p className="font-semibold text-brand-charcoal text-sm">{r.name}</p>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={`text-xs ${i < r.rating ? 'text-brand-gold' : 'text-gray-200'}`}>★</span>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 leading-relaxed">{r.comment}</p>
-                  <p className="text-xs text-gray-300 mt-1.5">{r.date}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Subscription Upgrade CTA ── */}
-        <div className="relative overflow-hidden rounded-sm border border-brand-gold/30 bg-gradient-to-l from-brand-gold/5 to-brand-cream p-6">
-          <div className="absolute top-0 left-0 w-full h-full opacity-5">
-            <div className="absolute top-2 left-4 text-8xl text-brand-gold select-none">✦</div>
-          </div>
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-brand-gold font-bold text-lg">★</span>
-                <span className="font-bold text-brand-charcoal">ترقية إلى Premium</span>
-              </div>
-              <p className="text-sm text-gray-500 max-w-sm">
-                احصل على ظهور مميز في نتائج البحث، شارة "موصى به"، وتقارير تحليلية متقدمة
-              </p>
+              <h2 className="text-2xl font-bold">{profile.business_name}</h2>
+              <p className="text-white/60 text-sm mt-1">{profile.city ?? 'لم تُحدَّد المدينة'}</p>
             </div>
             <Link
-              href="/vendor/subscription"
-              className="flex-shrink-0 bg-brand-charcoal text-white font-bold px-7 py-3 rounded-sm text-sm hover:bg-brand-charcoal-light transition-colors whitespace-nowrap"
+              href="/vendor/profile"
+              className="flex-shrink-0 bg-brand-gold text-white font-semibold px-6 py-2.5 rounded-sm text-sm hover:bg-brand-gold-dark transition-colors"
             >
-              اكتشف المزايا ←
+              تعديل الملف ←
             </Link>
           </div>
-
-          {/* Features */}
-          <div className="relative z-10 mt-5 flex flex-wrap gap-4">
-            {['ظهور في Top ٣', 'شارة موصى به', 'تقارير تفصيلية', 'دعم أولوية'].map(f => (
-              <div key={f} className="flex items-center gap-1.5 text-xs text-gray-500">
-                <span className="text-brand-gold">✦</span>
-                {f}
-              </div>
-            ))}
-          </div>
         </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: '💬', label: 'استفسارات جديدة', value: pendingInquiries.toString(), accent: 'bg-yellow-50' },
+            { icon: '⭐', label: 'متوسط التقييم',   value: avgRating,                    accent: 'bg-brand-blush' },
+            { icon: '📝', label: 'إجمالي التقييمات', value: reviews.length.toString(),   accent: 'bg-blue-50' },
+            { icon: '🖼️', label: 'صور المعرض',      value: photos.length.toString(),     accent: 'bg-green-50' },
+          ].map(s => (
+            <div key={s.label} className="bg-white rounded-sm p-5 shadow-card border border-gray-100 flex items-start gap-4">
+              <div className={`w-11 h-11 rounded-sm flex items-center justify-center text-xl flex-shrink-0 ${s.accent}`}>
+                {s.icon}
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-medium mb-0.5">{s.label}</p>
+                <p className="text-xl font-bold text-brand-charcoal">{s.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Inquiries */}
+        <div className="bg-white rounded-sm p-6 shadow-card border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-brand-charcoal text-base">الاستفسارات</h2>
+            <Link href="/vendor/inquiries" className="text-xs text-brand-gold hover:underline">عرض الكل ←</Link>
+          </div>
+
+          {inquiries.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p className="text-3xl mb-2">💬</p>
+              <p className="text-sm">لا توجد استفسارات بعد</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {inquiries.slice(0, 5).map((inq) => {
+                const statusInfo = INQUIRY_STATUS_LABELS[inq.status] ?? { label: inq.status, color: 'bg-gray-100 text-gray-500' };
+                return (
+                  <div key={inq.id} className="flex items-start gap-4 p-4 rounded-sm border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-brand-blush flex items-center justify-center text-brand-rose font-bold flex-shrink-0">
+                      ؟
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-gray-400">{timeAgo(inq.created_at)}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2">{inq.message}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reviews */}
+        <div className="bg-white rounded-sm p-6 shadow-card border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-brand-charcoal text-base">التقييمات</h2>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <p className="text-3xl mb-2">⭐</p>
+              <p className="text-sm">لا توجد تقييمات بعد</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {reviews.slice(0, 5).map((r) => (
+                <div key={r.id} className="p-4 rounded-sm border border-gray-100">
+                  <div className="flex items-center gap-1 mb-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className={i < r.rating ? 'text-brand-gold' : 'text-gray-200'}>★</span>
+                    ))}
+                    <span className="text-xs text-gray-400 mr-2">{timeAgo(r.created_at)}</span>
+                    {r.is_verified && (
+                      <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">✓ موثّق</span>
+                    )}
+                  </div>
+                  {r.comment && <p className="text-sm text-gray-600">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Portfolio */}
+        {photos.length > 0 && (
+          <div className="bg-white rounded-sm p-6 shadow-card border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-brand-charcoal text-base">المعرض</h2>
+              <Link href="/vendor/portfolio" className="text-xs text-brand-gold hover:underline">إدارة المعرض ←</Link>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {photos.map((photo) => (
+                <div key={photo.id} className="aspect-square rounded-sm bg-brand-cream overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={photo.alt_text ?? ''} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upgrade CTA if basic plan */}
+        {profile.subscription_plan === 'basic' && (
+          <div className="relative overflow-hidden rounded-sm bg-gradient-to-l from-brand-gold to-brand-gold-dark text-white p-7">
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold mb-1">ارتقِ بحضورك الرقمي</h3>
+                <p className="text-white/80 text-sm">الباقة الاحترافية: صور غير محدودة، أولوية في نتائج البحث، تحليلات متقدمة</p>
+              </div>
+              <Link
+                href="/vendor/upgrade"
+                className="flex-shrink-0 bg-white text-brand-gold-dark font-bold px-7 py-3 rounded-sm text-sm hover:bg-white/90 transition-colors"
+              >
+                ترقية الآن
+              </Link>
+            </div>
+          </div>
+        )}
 
       </div>
     </VendorLayout>
