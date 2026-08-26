@@ -1,4 +1,4 @@
-// /types/index.ts - All TypeScript interfaces and types for the Wedding AI Planner platform
+// /types/index.ts - TypeScript interfaces for رباط — منصة المناسبات العربية
 
 // ============================================
 // ENUM TYPES
@@ -6,15 +6,15 @@
 
 export enum UserRole {
   Organizer = 'organizer',
-  Vendor    = 'vendor',
-  Admin     = 'admin',
+  Vendor = 'vendor',
+  Admin = 'admin',
 }
 
 export enum EventType {
-  Wedding    = 'wedding',
-  HomeParty  = 'home_party',
-  Occasion   = 'occasion',
-  Birthday   = 'birthday',
+  Wedding = 'wedding',
+  HomeParty = 'home_party',
+  Occasion = 'occasion',
+  Birthday = 'birthday',
 }
 
 export enum VendorServiceType {
@@ -33,9 +33,9 @@ export enum SubscriptionPlan {
 }
 
 export enum OrganizerServiceType {
-  AiPlanner       = 'ai_planner',
+  AiPlanner = 'ai_planner',
   VendorDirectory = 'vendor_directory',
-  PdfExport       = 'pdf_export',
+  PdfExport = 'pdf_export',
 }
 
 export enum InquiryStatus {
@@ -81,10 +81,11 @@ export interface User {
   created_at: string;
 }
 
-export interface BrideProfile {
+export interface EventOrganizerProfile {
   id: string;
   user_id: string;
-  wedding_date: string | null;
+  event_date: string | null;
+  event_type: EventType;
   city: string | null;
   total_budget: number | null;
   guest_count: number | null;
@@ -118,10 +119,10 @@ export interface VendorPhoto {
   created_at: string;
 }
 
-export interface BridePurchase {
+export interface OrganizerPurchase {
   id: string;
-  bride_id: string;
-  service_type: BrideServiceType;
+  organizer_id: string;
+  service_type: OrganizerServiceType;
   amount_paid: number;
   payment_reference: string | null;
   purchased_at: string;
@@ -141,7 +142,7 @@ export interface VendorSubscription {
 
 export interface AiConversation {
   id: string;
-  bride_id: string;
+  organizer_id: string;
   messages: Record<string, unknown>[];
   created_at: string;
   updated_at: string;
@@ -149,7 +150,7 @@ export interface AiConversation {
 
 export interface Task {
   id: string;
-  bride_id: string;
+  organizer_id: string;
   title: string;
   description: string | null;
   due_date: string | null;
@@ -161,7 +162,7 @@ export interface Task {
 
 export interface BudgetItem {
   id: string;
-  bride_id: string;
+  organizer_id: string;
   category: string;
   estimated_amount: number | null;
   actual_amount: number | null;
@@ -172,7 +173,7 @@ export interface BudgetItem {
 
 export interface VendorInquiry {
   id: string;
-  bride_id: string;
+  organizer_id: string;
   vendor_id: string;
   message: string;
   status: InquiryStatus;
@@ -181,7 +182,7 @@ export interface VendorInquiry {
 
 export interface Review {
   id: string;
-  bride_id: string;
+  organizer_id: string;
   vendor_id: string;
   rating: number;
   comment: string | null;
@@ -195,7 +196,7 @@ export interface Review {
 
 export interface UserProfile {
   user: User;
-  brideProfile?: BrideProfile;
+  organizerProfile?: EventOrganizerProfile;
   vendorProfile?: VendorProfile;
 }
 
@@ -205,12 +206,12 @@ export interface VendorWithPhotos {
   coverPhoto?: VendorPhoto;
 }
 
-export interface BrideDashboardData {
-  profile: BrideProfile;
+export interface OrganizerDashboardData {
+  profile: EventOrganizerProfile;
   tasks: Task[];
   budgetItems: BudgetItem[];
   conversations: AiConversation[];
-  purchases: BridePurchase[];
+  purchases: OrganizerPurchase[];
 }
 
 export interface VendorDashboardData {
@@ -237,10 +238,12 @@ export interface RegisterForm {
   fullName: string;
   phone?: string;
   role: UserRole;
+  eventType?: EventType;
 }
 
-export interface BrideProfileForm {
-  weddingDate: string;
+export interface OrganizerProfileForm {
+  eventDate: string;
+  eventType: EventType;
   city: string;
   totalBudget: number;
   guestCount: number;
@@ -297,11 +300,12 @@ export interface RegisterRequest {
   fullName: string;
   phone?: string;
   role: UserRole;
+  eventType?: EventType;
 }
 
 export interface PaymentRequest {
   amount: number;
-  serviceType: BrideServiceType | SubscriptionPlan;
+  serviceType: OrganizerServiceType | SubscriptionPlan;
   returnUrl: string;
   callbackUrl: string;
 }
