@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { registerUser } from '@/lib/actions/auth';
 import { useRouter } from 'next/navigation';
 
 type Role      = 'organizer' | 'vendor';
@@ -18,8 +18,8 @@ const EVENT_TYPES: { value: EventType; label: string; emoji: string; desc: strin
 const STEPS = ['نوع الحساب', 'تفاصيل المناسبة', 'معلوماتك'];
 
 export default function RegisterPage() {
-  const router   = useRouter();
-  const supabase = createClient();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const [step,      setStep]      = useState(0);
   const [role,      setRole]      = useState<Role | null>(null);
@@ -29,7 +29,6 @@ export default function RegisterPage() {
   const [password,  setPassword]  = useState('');
   const [confirm,   setConfirm]   = useState('');
   const [showPass,  setShowPass]  = useState(false);
-  const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const [done,      setDone]      = useState(false);
 
@@ -44,35 +43,26 @@ export default function RegisterPage() {
     return '';
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const err = validateInfo();
     if (err) { setError(err); return; }
-    setLoading(true);
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name, role, event_type: eventType },
-        emailRedirectTo: `${location.origin}/dashboard`,
-      },
-    });
+    startTransition(async () => {
+      const result = await registerUser({
+        full_name: name,
+        email,
+        password,
+        confirm_password: confirm,
+        role: role!,
+        event_type: eventType ?? undefined,
+      });
 
-    if (signUpError) {
-      setError(signUpError.message === 'User already registered'
-        ? 'هذا البريد الإلكتروني مسجل مسبقاً'
-        : 'حدث خطأ، حاول مرة أخرى');
-      setLoading(false);
-      return;
-    }
-    setDone(true);
-  }
-
-  async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${location.origin}/dashboard` },
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      setDone(true);
     });
   }
 
@@ -395,7 +385,7 @@ export default function RegisterPage() {
 
                   <div className="flex gap-3 pt-1">
                     <button type="button" onClick={goBack} className="flex-1 border border-gray-200 bg-white text-brand-charcoal font-semibold py-3.5 rounded-sm hover:bg-gray-50 transition-colors text-sm">رجوع</button>
-                    <button type="submit" disabled={loading} className="flex-[2] btn-primary mt-0">
+                    <button type="submit" disabled={isPending} className="flex-[2] btn-primary mt-0">
                       {loading
                         ? <span className="flex items-center justify-center gap-2"><LoadingSpinner />جاري التسجيل...</span>
                         : 'إنشاء الحساب'}
