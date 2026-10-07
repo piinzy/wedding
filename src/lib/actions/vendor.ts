@@ -76,3 +76,78 @@ export async function replyToInquiry(inquiryId: string) {
 
   if (error) throw new Error(error.message);
 }
+
+export async function getVendors(filters?: {
+  serviceType?: string;
+  city?: string;
+  maxPrice?: number;
+  minRating?: number;
+  search?: string;
+}) {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from('vendor_profiles')
+    .select('*, users!inner(email)')
+    .eq('is_approved', true);
+
+  if (filters?.serviceType && filters.serviceType !== 'all') {
+    query = query.eq('service_type', filters.serviceType);
+  }
+  if (filters?.city) {
+    query = query.eq('city', filters.city);
+  }
+  if (filters?.maxPrice) {
+    query = query.lte('price_per_event', filters.maxPrice);
+  }
+  if (filters?.minRating) {
+    query = query.gte('average_rating', filters.minRating);
+  }
+  if (filters?.search) {
+    query = query.ilike('business_name', `%${filters.search}%`);
+  }
+
+  const { data, error } = await query.order('average_rating', { ascending: false });
+  if (error) return [];
+  return data ?? [];
+}
+
+export async function getVendorById(vendorId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('vendor_profiles')
+    .select('*, reviews(*), inquiry_messages(count)')
+    .eq('id', vendorId)
+    .single();
+  if (error) return null;
+  return data;
+}
+
+export async function createInquiry(input: {
+  vendorId: string;
+  message: string;
+  eventDate?: string;
+  eventType?: string;
+}) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' };
+
+  if (!input.message || input.message.trim().length < 10) {
+    return { error: 'الرسالة قصيرة جداً (١٠ أحرف على الأقل)' };
+  }
+
+  const { error } = await supabase
+    .from('inquiries')
+    .insert({
+      vendor_id: input.vendorId,
+      organizer_id: user.id,
+      message: input.message.trim(),
+      event_date: input.eventDate || null,
+      event_type: input.eventType || null,
+      status: 'pending',
+    });
+
+  if (error) return { error: 'فشل إرسال الاستفسار. حاول مجدداً.' };
+  return { success: true };
+}
