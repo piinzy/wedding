@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import HeroSection from '@/components/home/HeroSection';
 
 /* ══════════════════════════════════════════════
    DATA
@@ -119,139 +120,8 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ══ HERO ══ */}
-      <section className="relative overflow-hidden bg-brand-charcoal text-white min-h-[90vh] flex items-center">
-        {/* Background texture */}
-        <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-
-        {/* Gold glow blobs */}
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-brand-gold/10 blur-[120px] -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-brand-gold/8 blur-[100px] translate-x-1/3 translate-y-1/3" />
-
-        {/* Decorative ✦ */}
-        <div className="absolute top-12 left-10 text-brand-gold/15 text-[160px] font-bold leading-none select-none pointer-events-none">✦</div>
-        <div className="absolute bottom-16 right-16 text-brand-gold/10 text-[80px] leading-none select-none pointer-events-none">✦</div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-16 items-center">
-
-          {/* Left text */}
-          <div>
-            <div className="inline-flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-full px-4 py-2 text-xs font-medium mb-8">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              منصة المناسبات العربية الأولى
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              مناسبتك المثالية
-              <br />
-              <span className="text-brand-gold">تبدأ هنا</span>
-            </h1>
-
-            <p className="text-white/65 text-lg leading-relaxed mb-10 max-w-lg">
-              من حفلات الزفاف الفاخرة إلى أعياد الميلاد الدافئة — رباط يخطط معك، يوصلك بأفضل الموردين، ويضمن مناسبة لا تُنسى.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-12">
-              <Link href="/register" className="flex items-center justify-center gap-2 bg-brand-gold text-white font-bold px-8 py-4 rounded-sm hover:bg-brand-gold-dark transition-colors text-sm shadow-brand">
-                ابدأ التخطيط مجاناً
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-              </Link>
-              <Link href="/vendors" className="flex items-center justify-center gap-2 border border-white/20 text-white/80 font-medium px-8 py-4 rounded-sm hover:bg-white/8 transition-colors text-sm">
-                استعرض الموردين
-              </Link>
-            </div>
-
-            {/* Mini stats */}
-            <div className="flex items-center gap-6 pt-8 border-t border-white/10">
-              {STATS.slice(0, 3).map(s => (
-                <div key={s.label}>
-                  <p className="text-xl font-bold text-brand-gold">{s.value}</p>
-                  <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right: floating card mockup */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className="relative w-full max-w-sm">
-
-              {/* Main card */}
-              <div className="bg-white rounded-sm shadow-2xl p-6 relative z-10">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-0.5">مناسبتك القادمة</p>
-                    <p className="font-bold text-brand-charcoal">حفل زفاف — ٢٥ ديسمبر</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-brand-blush flex items-center justify-center text-xl">💍</div>
-                </div>
-
-                {/* Progress */}
-                <div className="mb-5">
-                  <div className="flex justify-between text-xs text-gray-400 mb-2">
-                    <span>تقدم التخطيط</span><span className="font-bold text-brand-charcoal">٦٨٪</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gold-gradient rounded-full" style={{ width: '68%' }} />
-                  </div>
-                </div>
-
-                {/* Tasks */}
-                <div className="space-y-2 mb-5">
-                  {[
-                    { done: true,  text: 'حجز القاعة'       },
-                    { done: true,  text: 'اختيار المصور'    },
-                    { done: false, text: 'تصميم الدعوات'    },
-                    { done: false, text: 'اختيار الفستان'   },
-                  ].map(t => (
-                    <div key={t.text} className={`flex items-center gap-2.5 text-xs p-2 rounded-sm ${t.done ? 'text-gray-400' : 'text-brand-charcoal'}`}>
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${t.done ? 'bg-green-400 border-green-400' : 'border-gray-300'}`}>
-                        {t.done && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
-                      </div>
-                      <span className={t.done ? 'line-through' : ''}>{t.text}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Budget mini */}
-                <div className="bg-brand-cream rounded-sm p-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-400">الميزانية المتبقية</p>
-                    <p className="font-bold text-green-600 text-sm">٦٥٬٥٠٠ ر.س</p>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-gray-400">من إجمالي</p>
-                    <p className="font-bold text-brand-charcoal text-sm">١٢٠٬٠٠٠ ر.س</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating: AI suggestion */}
-              <div className="absolute -bottom-5 -left-8 bg-white rounded-sm shadow-card border border-gray-100 p-3 z-20 w-52">
-                <div className="flex items-start gap-2">
-                  <span className="text-lg">🤖</span>
-                  <div>
-                    <p className="text-xs font-semibold text-brand-charcoal mb-0.5">اقتراح المساعد</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">احجزي المصور الآن — الجدول يمتلئ في ديسمبر!</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating: vendor chip */}
-              <div className="absolute -top-4 -right-6 bg-white rounded-sm shadow-card border border-gray-100 px-3 py-2 flex items-center gap-2 z-20">
-                <span className="text-sm">📸</span>
-                <div>
-                  <p className="text-xs font-semibold text-brand-charcoal">استوديو لحظات</p>
-                  <div className="flex items-center gap-1">
-                    <StarRow n={5} />
-                    <span className="text-xs text-gray-400">٤.٨</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ══ HERO (3D animated) ══ */}
+      <HeroSection />
 
       {/* ══ EVENT TYPES ══ */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
